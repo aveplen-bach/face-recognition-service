@@ -12,4 +12,7 @@ class Server:
         facerec_pb2_grpc.add_FaceRecognitionServicer_to_server(Facerec(), server)
         server.add_insecure_port('[::]:8082')
         server.start()
+
+        print("server started")
+
         server.wait_for_termination()
