@@ -27,3 +27,8 @@ class Facerec(facerec_pb2_grpc.FaceRecognition):
             img = face_recognition.load_image_file("tmp")
             img_face_encoding = face_recognition.face_encodings(img)[0]
             return facerec_pb2.ExtractFFVectorV1Response(ffvc=img_face_encoding)
+
+    def FFVectorDistance(self, request, context):
+        return facerec_pb2.FFVectorDistanceResponse(
+            distance=np.linalg.norm(request.ffvca - request.ffvcb, axis=0)
+        )
