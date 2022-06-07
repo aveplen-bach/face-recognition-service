@@ -4,8 +4,8 @@ import grpc
 import face_recognition
 import numpy as np
 
-from .protos.facerec import facerec_pb2, facerec_pb2_grpc
-from .protos.s3file import s3file_pb2, s3file_pb2_grpc
+from protos.facerec import facerec_pb2, facerec_pb2_grpc
+from protos.s3file import s3file_pb2, s3file_pb2_grpc
 
 
 
