@@ -15,7 +15,7 @@ from protos.s3file import s3file_pb2, s3file_pb2_grpc
 class Facerec(facerec_pb2_grpc.FaceRecognition):
 
     def __init__(self):
-        channel = grpc.insecure_channel("localhost:9090")
+        channel = grpc.insecure_channel("localhost:30031")
         self.stub = s3file_pb2_grpc.S3GatewayStub(channel)
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
@@ -41,7 +41,7 @@ class Facerec(facerec_pb2_grpc.FaceRecognition):
                 img = face_recognition.load_image_file("tmp")
                 img_face_encoding = face_recognition.face_encodings(img)[0]
                 return facerec_pb2.ExtractFFVectorV1Response(ffvc=img_face_encoding)
-        except Error as e:
+        except Exception as e:
             print(e)
 
     def FFVectorDistance(self, request, context):
@@ -54,5 +54,5 @@ class Facerec(facerec_pb2_grpc.FaceRecognition):
             return facerec_pb2.FFVectorDistanceResponse(
                 distance=np.linalg.norm(ffvcaar - ffvcbar, axis=0).item()
             )
-        except Error as e:
+        except Exception as e:
             print(e)

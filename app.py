@@ -10,7 +10,7 @@ class Server:
     def run():
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         facerec_pb2_grpc.add_FaceRecognitionServicer_to_server(Facerec(), server)
-        server.add_insecure_port('[::]:8082')
+        server.add_insecure_port('[::]:30032')
         server.start()
 
         print("server started")
