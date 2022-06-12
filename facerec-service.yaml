@@ -1,0 +1,8 @@
+server:
+  addr: ":30055"
+
+lifecheck:
+  addr: ":8080"
+
+s3-client:
+  addr: localhost:30031
