@@ -3,7 +3,9 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 class LifecheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        self.send_response(200)
+        print("feeling healthy")
+        self.send_response(200, "OK")
+        self.end_headers()
 
 
 def run(cfg, server_class=HTTPServer, handler_class=LifecheckHandler):
