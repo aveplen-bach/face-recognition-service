@@ -10,7 +10,8 @@ def run(cfg):
     addr = os.environ.get("GRPC_LISTEN_ADDR", cfg["server"]["addr"])
     port = int(addr[len(addr)-5:])
 
-    print(f"grpc server is running on {port}")
+    for i in range(100):
+        print(f"grpc server is running on {port}")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     facerec_pb2_grpc.add_FaceRecognitionServicer_to_server(
         Facerec(cfg), server)
