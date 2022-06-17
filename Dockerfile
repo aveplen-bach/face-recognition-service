@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY requirements.txt requirements.txt
 RUN apt update
-RUN apt install build-essential cmake pkg-config -y
+RUN apt install build-essential cmake pkg-config curl -y
 RUN pip3 install -r requirements.txt
 
 COPY . .
