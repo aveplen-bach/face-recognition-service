@@ -1,8 +1,8 @@
 server:
-  addr: ":30055"
+  addr: ":30035"
 
 lifecheck:
-  addr: ":8080"
+  addr: ":8085"
 
 s3-client:
-  addr: localhost:30031
+  addr: localhost:30032
