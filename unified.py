@@ -42,53 +42,87 @@ class Facerec(facerec_pb2_grpc.FaceRecognition):
     def __init__(self, cfg):
         channel = grpc.insecure_channel(cfg["s3-client"]["addr"])
         self.stub = s3file_pb2_grpc.S3GatewayStub(channel)
+
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
-
         handler = StreamHandler(stream=sys.stdout)
         handler.setFormatter(
             Formatter(fmt="[%(asctime)s: %(levelname)s] %(message)s"))
         self.logger.addHandler(handler)
-
         self.logger.debug("debug information")
 
     def ExtractFFVectorV1(self, request, context):
-        nowstr = str(time.time())
+        self.logger.info(
+            f"ExtractFFVectorV1 called with ObjectID: {request.id}")
         try:
-            self.logger.info(
-                f"ExtractFFVectorV1 called with ObjectID: {request.id}")
+            filename = str(request.id)
 
+            self.logger.debug("getting image object from s3")
             response = self.stub.GetImageObject(
                 s3file_pb2.GetImageObjectRequest(id=request.id))
+
+            self.logger.debug("extracting contents from s3 response")
             img_blob = response.contents
 
-            with open(nowstr, "wb") as f:
-                self.logger.info(f"creating file {nowstr}")
+            self.logger.debug("saving contents as file")
+            with open(filename, "wb") as f:
+                self.logger.debug(f"creating file {filename}")
                 f.write(img_blob)
-                img = face_recognition.load_image_file(nowstr)
-                img_face_encoding = face_recognition.face_encodings(img)[0]
-                return facerec_pb2.ExtractFFVectorV1Response(ffvc=img_face_encoding)
+
+            self.logger.debug("loading file with face_recogntion")
+            img = face_recognition.load_image_file(filename)
+
+            # handling errors like a pro
+            self.logger.debug("extracting encoding")
+            encodings = face_recognition.face_encodings(img)
+            if len(encodings) != 1:
+
+                if len(encodings) < 1:
+                    context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                    context.set_details(
+                        "there are no faces on the provided photo")
+                    return facerec_pb2.ExtractFFVectorV1Response()
+
+                if len(encodings) > 1:
+                    context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                    context.set_details(
+                        "there are more then one faces on the provided photo")
+                    return facerec_pb2.ExtractFFVectorV1Response()
+
+            self.logger.debug("responding to caller")
+            return facerec_pb2.ExtractFFVectorV1Response(ffvc=encodings[0].tolist())
+
         except Exception as e:
-            print(e)
+            self.logger.error(str(e))
+
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(e))
+            return facerec_pb2.ExtractFFVectorV1Response()
 
         finally:
-            if os.path.exists(nowstr):
-                self.logger.info(f"removing file {nowstr}")
-                os.remove(nowstr)
+            self.logger.debug("removing file from os")
+            if os.path.exists(filename):
+                self.logger.debug(f"removing file {filename}")
+                os.remove(filename)
 
     def FFVectorDistance(self, request, context):
+        self.logger.info("FFVectorDistance called")
+
         try:
+            self.logger.debug("conferting vector a to np array")
             ffvcaar = np.asarray(request.ffvca)
+
+            self.logger.debug("conferting vector b to np array")
             ffvcbar = np.asarray(request.ffvcb)
 
-            self.logger.info(
-                f"FFVectorDistance called with len(ffva): {len(ffvcaar)}, len(ffvb): {len(ffvcbar)}")
-
+            self.logger.debug("responding to caller")
             return facerec_pb2.FFVectorDistanceResponse(
                 distance=np.linalg.norm(ffvcaar - ffvcbar, axis=0).item()
             )
         except Exception as e:
+            self.logger.debug("logging exception")
             print(e)
+            self.logger.error(e)
 
 
 class GrpcServer():
@@ -121,6 +155,7 @@ if __name__ == '__main__':
     g = GrpcServer(cfg)
 
     t1 = threading.Thread(target=l.run)
-    t2 = threading.Thread(target=g.run)
+    # t2 = threading.Thread(target=g.run)
     t1.start()
-    t2.start()
+    # t2.start()
+    g.run()
