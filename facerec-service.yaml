@@ -5,4 +5,4 @@ lifecheck:
   addr: ":8085"
 
 s3-client:
-  addr: localhost:30032
+  addr: s3-gateway:30032
